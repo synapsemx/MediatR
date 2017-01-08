@@ -47,6 +47,7 @@ namespace MediatR.Internal
     {
         private Func<TRequest, CancellationToken, SingleInstanceFactory, RequestHandlerDelegate<TResponse>> _handlerFactory;
         private object _syncLock = new object();
+        private bool _initialized;
 
         public override Task<TResponse> Handle(IRequest<TResponse> request, CancellationToken cancellationToken,
             SingleInstanceFactory singleFactory, MultiInstanceFactory multiFactory)
@@ -60,12 +61,10 @@ namespace MediatR.Internal
 
         private RequestHandlerDelegate<TResponse> GetHandler(TRequest request, CancellationToken cancellationToken, SingleInstanceFactory factory)
         {
-            var initialized = false;
-
-            LazyInitializer.EnsureInitialized(ref _handlerFactory, ref initialized, ref _syncLock,
+            LazyInitializer.EnsureInitialized(ref _handlerFactory, ref _initialized, ref _syncLock,
                 () => GetHandlerFactory(t => GetHandler(t, factory)));
 
-            if (!initialized || _handlerFactory == null)
+            if (!_initialized || _handlerFactory == null)
             {
                 throw BuildException(request);
             }
@@ -120,6 +119,7 @@ namespace MediatR.Internal
     {
         private Func<TRequest, CancellationToken, SingleInstanceFactory, RequestHandlerDelegate<Unit>> _handlerFactory;
         private object _syncLock = new object();
+        private bool _initialized;
 
         public override Task Handle(IRequest request, CancellationToken cancellationToken,
             SingleInstanceFactory singleFactory, MultiInstanceFactory multiFactory)
@@ -133,12 +133,10 @@ namespace MediatR.Internal
 
         private RequestHandlerDelegate<Unit> GetHandler(TRequest request, CancellationToken cancellationToken, SingleInstanceFactory singleInstanceFactory)
         {
-            var initialized = false;
-
-            LazyInitializer.EnsureInitialized(ref _handlerFactory, ref initialized, ref _syncLock,
+            LazyInitializer.EnsureInitialized(ref _handlerFactory, ref _initialized, ref _syncLock,
                 () => GetHandlerFactory(t => GetHandler(t, singleInstanceFactory)));
 
-            if (!initialized || _handlerFactory == null)
+            if (!_initialized || _handlerFactory == null)
             {
                 throw BuildException(request);
             }
